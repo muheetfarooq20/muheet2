@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Features - Pridictx Bug Detection Tool</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <header>
+      <nav>
+        <div class="logo">
+          <a href="{{ url_for('start') }}">
+            <h1 class="logo-text">Pridictx</h1>
+          </a>
+        </div>
+        <div class="nav-links">
+          <a href="{{ url_for('index') }}">Home</a>
+          <a href="{{ url_for('introduction') }}">Introduction</a>
+          <a href="{{ url_for('features') }}" class="active">Features</a>
+          <a href="{{ url_for('how_it_works') }}">How It Works</a>
+          <a href="{{ url_for('team') }}">Our Team</a>
+          <a href="{{ url_for('help') }}">Help</a>
+        </div>
+        <div class="hamburger">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section class="page-header">
+        <h1>Why Choose Pridictx</h1>
+        <p>
+          Discover the powerful features that make Pridictx the best bug
+          detection tool for developers
+        </p>
+      </section>
+
+      <section id="features" class="features">
+        <div class="feature-cards">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-bug"></i>
+            </div>
+            <h3>Smart Bug Detection</h3>
+            <p>
+              Our AI algorithms detect complex bugs that traditional tools miss
+            </p>
+            <div class="feature-details">
+              <p>
+                Pridictx uses machine learning to identify patterns in your code
+                that might lead to bugs. By analyzing thousands of code samples,
+                our AI can predict potential issues before they manifest.
+              </p>
+              <ul>
+                <li>Detects logical errors that don't throw exceptions</li>
+                <li>Identifies race conditions in asynchronous code</li>
+                <li>Finds memory leaks and performance bottlenecks</li>
+              </ul>
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-bolt"></i>
+            </div>
+            <h3>Real-time Analysis</h3>
+            <p>
+              Get instant feedback as you code with our seamless integration
+            </p>
+            <div class="feature-details">
+              <p>
+                Pridictx integrates with your IDE to provide real-time feedback
+                as you write code. No need to wait for a build or test run to
+                discover issues.
+              </p>
+              <ul>
+                <li>Instant feedback in your editor</li>
+                <li>Suggestions for fixing detected issues</li>
+                <li>Performance impact analysis</li>
+              </ul>
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-code-branch"></i>
+            </div>
+            <h3>Multi-language Support</h3>
+            <p>Works with JavaScript, Python, Java, and many more languages</p>
+            <div class="feature-details">
+              <p>
+                No matter what programming language you use, Pridictx has you
+                covered. Our tool supports all major programming languages and
+                frameworks.
+              </p>
+              <ul>
+                <li>JavaScript/TypeScript and Node.js</li>
+                <li>Python, Java, C#, and C++</li>
+                <li>Ruby, Go, Rust, and more</li>
+              </ul>
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-chart-line"></i>
+            </div>
+            <h3>Detailed Reports</h3>
+            <p>Comprehensive analytics to track your code quality over time</p>
+            <div class="feature-details">
+              <p>
+                Pridictx generates detailed reports that help you understand the
+                health of your codebase and track improvements over time.
+              </p>
+              <ul>
+                <li>Code quality metrics and trends</li>
+                <li>Bug detection statistics</li>
+                <li>Team performance insights</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="back-to-home">
+        <a href="{{ url_for('index') }}"><i class="fas fa-home"></i> Back to Home</a>
+      </section>
+    </main>
+
+    <footer>
+      <div class="footer-bottom">
+        <p>&copy; 2023 Pridictx. All rights reserved.</p>
+        <div class="social-links">
+          <a href="#"><i class="fab fa-twitter"></i></a>
+          <a href="#"><i class="fab fa-github"></i></a>
+          <a href="#"><i class="fab fa-linkedin"></i></a>
+        </div>
+      </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+  </body>
+</html>

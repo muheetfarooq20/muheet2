@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Pridictx - Bug Detection Tool{% endblock %}
+
+{% block body_class %}home-page{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero-content">
+    <h1 class="main-title">
+      <span class="pridictx-text">Pridictx</span>
+    </h1>
+    <p class="subtitle">
+      Advanced Bug Detection Tool for Modern Development
+    </p>
+    <p class="description">
+      Detect and fix bugs before they reach production with our AI-powered
+      analysis tool
+    </p>
+    <div class="hero-buttons">
+      <a href="{{ url_for('analyzer') }}" class="btn primary-btn">
+        <i class="fas fa-code"></i> Analyze Code
+      </a>
+      <a href="{{ url_for('predictor') }}" class="btn secondary-btn">
+        <i class="fas fa-chart-line"></i> Predict Bugs
+      </a>
+    </div>
+  </div>
+  <div class="hero-image">
+    <div class="bug-animation-container">
+      <div class="bug-container">
+        <div class="bug">
+          <i class="fas fa-bug"></i>
+        </div>
+        <div class="bug-shadow"></div>
+      </div>
+      <div class="code-lines">
+        <div class="code-line"></div>
+        <div class="code-line"></div>
+        <div class="code-line"></div>
+        <div class="code-line"></div>
+        <div class="code-line"></div>
+        <div class="code-line"></div>
+        <div class="code-line"></div>
+        <div class="code-line"></div>
+      </div>
+      <div class="bug-finder">
+        <div class="scanner"></div>
+        <div class="bug-found">Bug Found!</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="get-started-section" id="get-started">
+  <div class="container">
+    <h2>Ready to Get Started?</h2>
+    <p>Begin your journey to bug-free code today.</p>
+    <a href="{{ url_for('auth.login') }}" class="btn primary-btn">
+      <i class="fas fa-sign-in-alt"></i> Log In / Sign Up
+    </a>
+  </div>
+</section>
+{% endblock %}

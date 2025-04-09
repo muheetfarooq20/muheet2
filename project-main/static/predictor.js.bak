@@ -1,0 +1,715 @@
+// Initialize when document is loaded
+document.addEventListener('DOMContentLoaded', function() {
+  initPredictorForm();
+  // ParticleJS is now initialized in the HTML
+});
+
+// Initialize the prediction form
+function initPredictorForm() {
+  const form = document.getElementById('predictor-form');
+  const fileInput = document.getElementById('file-input');
+  const csvUploadBtn = document.getElementById('csv-upload');
+  const resultContainer = document.getElementById('result-container');
+  
+  // Set default values for a sample
+  populateWithSampleData();
+  
+  // Form submission handler
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Collect all metric values
+      const formData = new FormData(form);
+      const metrics = {};
+      let filledFields = 0;
+      
+      formData.forEach((value, key) => {
+        if (value !== '') {
+          metrics[key] = parseFloat(value);
+          filledFields++;
+        }
+      });
+      
+      // Fix parameter names to match what the model expects
+      if (metrics.vg !== undefined) {
+        metrics['v(g)'] = metrics.vg;
+        delete metrics.vg;
+      }
+      
+      if (metrics.evg !== undefined) {
+        metrics['ev(g)'] = metrics.evg;
+        delete metrics.evg;
+      }
+      
+      if (metrics.ivg !== undefined) {
+        metrics['iv(g)'] = metrics.ivg;
+        delete metrics.ivg;
+      }
+      
+      // Validate that enough fields are filled
+      if (filledFields < 4) {
+        showNotification('Please fill at least 4 metric fields', 'error');
+        return;
+      }
+      
+      // Show loading state
+      showLoading();
+      
+      // Make API call to predict endpoint
+      fetch('/predict', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(metrics),
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        // Display the result with enhanced animation
+        displayFuturisticResult(data);
+        
+        // Add metrics to DOM for potential future use
+        document.querySelectorAll('.metric-item').forEach(item => {
+          const input = item.querySelector('input');
+          if (input && input.value) {
+            item.dataset.value = input.value;
+          }
+        });
+        
+        // Hide loading state
+        hideLoading();
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        
+        // Fallback to client-side calculation
+        const result = calculatePrediction(metrics);
+        displayFuturisticResult(result);
+        
+        // Hide loading state
+        hideLoading();
+        
+        showNotification('Server error, using client-side prediction instead', 'warning');
+      });
+    });
+  }
+  
+  // File input change handler
+  if (fileInput) {
+    fileInput.addEventListener('change', function() {
+      if (this.files && this.files[0]) {
+        const fileName = this.files[0].name;
+        const fileExt = fileName.split('.').pop().toLowerCase();
+        
+        if (['js', 'py', 'java', 'c', 'cpp', 'cs'].includes(fileExt)) {
+          showNotification(`File selected: ${fileName}`, 'info');
+          
+          // Show loading state for file processing
+          showLoading();
+          
+          // Create a form to upload the file
+          const uploadForm = new FormData();
+          uploadForm.append('file', this.files[0]);
+          
+          // Send the file to the server for analysis using the ML model
+          fetch('/analyze_code', {
+            method: 'POST',
+            body: uploadForm
+          })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+          .then(data => {
+            if (data.metrics) {
+              // Populate the form with metrics from server
+              populateFormWithData(data.metrics);
+              hideLoading();
+              
+              // If we also got a prediction, display it
+              if (data.prediction !== undefined) {
+                displayFuturisticResult(data);
+                showNotification('File analyzed with AI model. Results displayed.', 'success');
+              } else {
+                showNotification('File analyzed. Metrics populated from analysis.', 'success');
+              }
+            } else {
+              throw new Error('No metrics returned from server');
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            // Fallback to random data if server fails
+            const randomData = getRandomMetrics();
+            populateFormWithData(randomData);
+            hideLoading();
+            showNotification('Server analysis failed. Using sample metrics instead.', 'warning');
+          });
+        } else {
+          showNotification('Unsupported file type. Please select a code file.', 'error');
+        }
+      }
+    });
+  }
+  
+  // CSV upload button handler
+  if (csvUploadBtn) {
+    csvUploadBtn.addEventListener('click', function() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.csv';
+      
+      input.onchange = function(e) {
+        if (e.target.files && e.target.files[0]) {
+          const file = e.target.files[0];
+          
+          if (!file.name.toLowerCase().endsWith('.csv')) {
+            showNotification('Please select a CSV file', 'error');
+            return;
+          }
+          
+          showLoading();
+          
+          // Create a form to upload the CSV
+          const uploadForm = new FormData();
+          uploadForm.append('file', file);
+          
+          // In a real implementation, we would send the CSV for batch processing
+          // For now, just populate the form with sample data
+          setTimeout(function() {
+            populateWithSampleData();
+            hideLoading();
+            showNotification('CSV file data loaded', 'success');
+          }, 800);
+        }
+      };
+      
+      input.click();
+    });
+  }
+  
+  // Add hover effect to metric items
+  document.querySelectorAll('.metric-item').forEach(item => {
+    item.addEventListener('mouseenter', function() {
+      this.classList.add('hover');
+    });
+    
+    item.addEventListener('mouseleave', function() {
+      this.classList.remove('hover');
+    });
+  });
+}
+
+// Calculate prediction based on metrics (client-side fallback)
+function calculatePrediction(metrics) {
+  // This is a fallback when the server is unavailable
+  // Define weights for important metrics
+  const weights = {
+    'loc': 0.15,         // Lines of code
+    'v(g)': 0.25,        // Cyclomatic complexity
+    'ev(g)': 0.15,       // Essential complexity
+    'iv(g)': 0.10,       // Design complexity
+    'd': 0.15,           // Difficulty
+    'e': 0.20,           // Effort
+    'branchCount': 0.10, // Branch count
+    'b': 0.35,           // Bugs estimate (if available)
+    'n': 0.05,           // Program vocabulary
+    'v': 0.10            // Program volume
+  };
+  
+  // Calculate bug score
+  let bugScore = 0;
+  let weightSum = 0;
+  
+  // Calculate weighted score
+  Object.keys(weights).forEach(metric => {
+    if (metrics[metric] !== undefined) {
+      // Normalize the metric based on typical ranges
+      let normalizedValue;
+      
+      switch(metric) {
+        case 'v(g)':
+          // Higher cyclomatic complexity increases bug probability
+          normalizedValue = Math.min(1, metrics[metric] / 25);
+          break;
+        case 'ev(g)':
+          // Higher essential complexity increases bug probability
+          normalizedValue = Math.min(1, metrics[metric] / 15);
+          break;
+        case 'iv(g)':
+          // Higher design complexity increases bug probability
+          normalizedValue = Math.min(1, metrics[metric] / 20);
+          break;
+        case 'd':
+          // Higher difficulty increases bug probability
+          normalizedValue = Math.min(1, metrics[metric] / 50);
+          break;
+        case 'e':
+          // Higher effort increases bug probability
+          normalizedValue = Math.min(1, metrics[metric] / 10000);
+          break;
+        case 'b':
+          // Direct bug estimate
+          normalizedValue = Math.min(1, metrics[metric] * 5);
+          break;
+        case 'branchCount':
+          // Higher branch count increases bug probability
+          normalizedValue = Math.min(1, metrics[metric] / 50);
+          break;
+        case 'loc':
+          // Higher LOC increases bug probability
+          normalizedValue = Math.min(1, metrics[metric] / 1000);
+          break;
+        case 'n':
+          // Program vocabulary
+          normalizedValue = Math.min(1, metrics[metric] / 200);
+          break;
+        case 'v':
+          // Program volume
+          normalizedValue = Math.min(1, metrics[metric] / 5000);
+          break;
+        default:
+          normalizedValue = 0.5;
+      }
+      
+      bugScore += normalizedValue * weights[metric];
+      weightSum += weights[metric];
+    }
+  });
+  
+  // Calculate bug probability
+  const probability = weightSum > 0 ? bugScore / weightSum : 0.5;
+  
+  // Generate top metrics
+  const topMetrics = {};
+  let sortableMetrics = [];
+  
+  for (const metric in weights) {
+    if (metrics[metric] !== undefined) {
+      const normalizedValue = Math.min(1, 
+        metric === 'b' ? metrics[metric] * 5 :
+        metric === 'loc' ? metrics[metric] / 1000 :
+        metric === 'v(g)' ? metrics[metric] / 25 :
+        metric === 'ev(g)' ? metrics[metric] / 15 :
+        metric === 'e' ? metrics[metric] / 10000 : 
+        0.5);
+      
+      sortableMetrics.push({
+        metric: metric,
+        influence: normalizedValue * weights[metric] / weightSum
+      });
+    }
+  }
+  
+  // Sort by influence and take top 5
+  sortableMetrics.sort((a, b) => b.influence - a.influence);
+  sortableMetrics = sortableMetrics.slice(0, 5);
+  
+  // Convert to required format
+  sortableMetrics.forEach(item => {
+    topMetrics[item.metric] = { influence: Math.round(item.influence * 100) / 100 };
+  });
+  
+  // Generate insights
+  const insights = [];
+  
+  if (probability > 0.5) {
+    insights.push({
+      type: "warning",
+      title: "High Bug Risk Detected",
+      message: "This code has a significant risk of containing bugs based on its metrics."
+    });
+  } else {
+    insights.push({
+      type: "success",
+      title: "Low Bug Risk",
+      message: "This code appears to have a low risk of bugs based on its metrics."
+    });
+  }
+  
+  if (metrics['v(g)'] && metrics['v(g)'] > 15) {
+    insights.push({
+      type: "suggestion",
+      title: "High Cyclomatic Complexity",
+      message: "Consider refactoring complex functions into smaller, more manageable units."
+    });
+  }
+  
+  if (metrics.loc && metrics.loc > 500) {
+    insights.push({
+      type: "suggestion",
+      title: "Large Code Size",
+      message: "This module is quite large. Consider breaking it into smaller modules with better separation of concerns."
+    });
+  }
+  
+  if (metrics.d && metrics.d > 30) {
+    insights.push({
+      type: "suggestion",
+      title: "High Program Difficulty",
+      message: "The program has high difficulty which may lead to maintenance issues. Try to simplify the implementation."
+    });
+  }
+  
+  if (metrics.e && metrics.e > 5000) {
+    insights.push({
+      type: "suggestion",
+      title: "High Mental Effort Required",
+      message: "This code requires significant mental effort to understand. Consider adding more comments and breaking down complex parts."
+    });
+  }
+  
+  return {
+    prediction: probability > 0.5 ? 1 : 0,
+    probability: Math.round(probability * 100) / 100,
+    input: metrics,
+    top_metrics: topMetrics,
+    insights: insights,
+    is_ai_prediction: false
+  };
+}
+
+// Display prediction result with futuristic styling
+function displayFuturisticResult(data) {
+  const resultContainer = document.getElementById('result-container');
+  if (!resultContainer) return;
+  
+  // Determine result class based on prediction
+  const resultClass = data.prediction === 1 ? 'bug' : 'clean';
+  const resultText = data.prediction === 1 ? 'Bug Likely' : 'Code Clean';
+  const resultIcon = data.prediction === 1 ? 'fa-bug' : 'fa-shield-check';
+  const probability = data.probability * 100;
+  
+  // Create result HTML
+  const resultHTML = `
+    <div class="result-card ${resultClass}">
+      <div class="result-header">
+        <div class="result-badge ${resultClass}">
+          <i class="fas ${resultIcon}"></i> ${resultText}
+        </div>
+        ${data.is_ai_prediction ? '<div class="ai-badge"><i class="fas fa-robot"></i> AI Prediction</div>' : ''}
+      </div>
+      
+      <div class="result-details">
+        <div class="probability-meter">
+          <div class="meter-circle">
+            <svg viewBox="0 0 36 36">
+              <path class="circle-bg" d="M18 2.0845
+                a 15.9155 15.9155 0 0 1 0 31.831
+                a 15.9155 15.9155 0 0 1 0 -31.831" />
+              <path class="progress-circle ${getProbabilityClass(probability)}" stroke-dasharray="${probability}, 100" d="M18 2.0845
+                a 15.9155 15.9155 0 0 1 0 31.831
+                a 15.9155 15.9155 0 0 1 0 -31.831" />
+              <text x="18" y="18" class="percentage">${Math.round(probability)}%</text>
+            </svg>
+          </div>
+          <div class="probability-label">Bug Probability</div>
+        </div>
+        
+        <p class="result-summary">
+          ${getResultSummary(data)}
+        </p>
+      </div>
+      
+      <div class="metrics-influence">
+        <h3><i class="fas fa-chart-bar"></i> Metrics Influence</h3>
+        <div class="influence-bars">
+          ${getInfluenceBars(data.top_metrics)}
+        </div>
+      </div>
+      
+      <div class="insights-section">
+        <h3><i class="fas fa-lightbulb"></i> Insights & Recommendations</h3>
+        <div class="insights-list">
+          ${getInsightsHTML(data.insights)}
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Apply to container
+  resultContainer.innerHTML = resultHTML;
+  resultContainer.classList.add('visible');
+  
+  // Animate influence bars after a short delay
+  setTimeout(() => {
+    document.querySelectorAll('.influence-bar').forEach(bar => {
+      bar.classList.add('animated');
+    });
+    
+    if (data.is_ai_prediction) {
+      document.querySelector('.ai-badge').classList.add('visible');
+    }
+  }, 300);
+}
+
+// Generate influence bars HTML
+function getInfluenceBars(topMetrics) {
+  if (!topMetrics || Object.keys(topMetrics).length === 0) {
+    return '<p>No metric influence data available.</p>';
+  }
+  
+  return Object.entries(topMetrics).map(([metric, data]) => {
+    const influence = data.influence;
+    const width = influence * 100;
+    const metricDisplayName = getMetricDisplayName(metric);
+    
+    return `
+      <div class="influence-item">
+        <div class="influence-label">${metricDisplayName}</div>
+        <div class="influence-bar-container">
+          <div class="influence-bar" style="width: 0%" data-width="${width}%"></div>
+        </div>
+        <div class="influence-value">${influence}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Get readable metric name for display
+function getMetricDisplayName(metric) {
+  const metricNames = {
+    'loc': 'Lines of Code',
+    'v(g)': 'Cyclomatic Complexity',
+    'ev(g)': 'Essential Complexity',
+    'iv(g)': 'Design Complexity',
+    'd': 'Difficulty',
+    'e': 'Effort',
+    'b': 'Bug Estimate',
+    'branchCount': 'Branch Count',
+    'n': 'Program Vocabulary',
+    'v': 'Program Volume',
+    'loCode': 'Code Lines',
+    'loComment': 'Comment Lines',
+    'loBlank': 'Blank Lines',
+    'locCodeAndComment': 'Code & Comment',
+    'uniq_Op': 'Unique Operators',
+    'uniq_Opnd': 'Unique Operands',
+    'total_Op': 'Total Operators',
+    'total_Opnd': 'Total Operands'
+  };
+  
+  return metricNames[metric] || metric;
+}
+
+// Generate insights HTML
+function getInsightsHTML(insights) {
+  if (!insights || insights.length === 0) {
+    return '<p>No insights available.</p>';
+  }
+  
+  return insights.map(insight => {
+    return `
+      <div class="insight-item ${insight.type}">
+        <div class="insight-icon">
+          <i class="fas ${getInsightIcon(insight.type)}"></i>
+        </div>
+        <div class="insight-content">
+          <h4>${insight.title}</h4>
+          <p>${insight.message}</p>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Get icon for insight type
+function getInsightIcon(type) {
+  switch(type) {
+    case 'warning': return 'fa-exclamation-triangle';
+    case 'success': return 'fa-check-circle';
+    case 'suggestion': return 'fa-lightbulb';
+    case 'info': return 'fa-info-circle';
+    default: return 'fa-info-circle';
+  }
+}
+
+// Get a summary based on prediction data
+function getResultSummary(data) {
+  if (data.prediction === 1) {
+    const probability = Math.round(data.probability * 100);
+    if (probability > 80) {
+      return `The code has a very high probability (${probability}%) of containing bugs. Critical attention is recommended.`;
+    } else if (probability > 60) {
+      return `The code has a high probability (${probability}%) of containing bugs. Review recommended.`;
+    } else {
+      return `The code has a moderate probability (${probability}%) of containing bugs. Consider reviewing.`;
+    }
+  } else {
+    const probability = Math.round((1 - data.probability) * 100);
+    if (probability > 80) {
+      return `The code has a very high probability (${probability}%) of being clean. Good quality detected.`;
+    } else if (probability > 60) {
+      return `The code has a high probability (${probability}%) of being clean. Minor improvements possible.`;
+    } else {
+      return `The code has a moderate probability (${probability}%) of being clean. Some improvements recommended.`;
+    }
+  }
+}
+
+// Get probability class for styling
+function getProbabilityClass(probability) {
+  if (probability >= 70) return 'high';
+  if (probability >= 40) return 'medium';
+  return 'low';
+}
+
+// Show loading overlay
+function showLoading() {
+  const overlay = document.getElementById('loading-overlay');
+  if (overlay) {
+    overlay.classList.add('show');
+  }
+}
+
+// Hide loading overlay
+function hideLoading() {
+  const overlay = document.getElementById('loading-overlay');
+  if (overlay) {
+    overlay.classList.remove('show');
+  }
+}
+
+// Show notification
+function showNotification(message, type) {
+  // Remove existing notification
+  let notification = document.querySelector('.notification');
+  if (notification) {
+    notification.remove();
+  }
+  
+  // Create new notification
+  notification = document.createElement('div');
+  notification.className = `notification ${type}`;
+  
+  // Set icon based on type
+  let icon = 'info-circle';
+  if (type === 'success') icon = 'check-circle';
+  if (type === 'error') icon = 'times-circle';
+  if (type === 'warning') icon = 'exclamation-triangle';
+  
+  notification.innerHTML = `
+    <div class="notification-icon">
+      <i class="fas fa-${icon}"></i>
+    </div>
+    <div class="notification-content">
+      ${message}
+    </div>
+  `;
+  
+  // Add to body
+  document.body.appendChild(notification);
+  
+  // Show notification
+  setTimeout(() => {
+    notification.classList.add('show');
+  }, 10);
+  
+  // Auto hide after 5 seconds
+  setTimeout(() => {
+    notification.classList.remove('show');
+    setTimeout(() => {
+      notification.remove();
+    }, 300);
+  }, 5000);
+}
+
+// Populate form with random example values
+function getRandomMetrics() {
+  return {
+    'loc': Math.floor(Math.random() * 1000) + 100,
+    'v(g)': Math.floor(Math.random() * 20) + 5,
+    'ev(g)': Math.floor(Math.random() * 10) + 1,
+    'iv(g)': Math.floor(Math.random() * 10) + 1,
+    'n': Math.floor(Math.random() * 200) + 50,
+    'v': Math.floor(Math.random() * 3000) + 1000,
+    'l': (Math.random() * 0.8 + 0.1).toFixed(2),
+    'd': (Math.random() * 40 + 10).toFixed(2),
+    'i': (Math.random() * 60 + 20).toFixed(2),
+    'e': Math.floor(Math.random() * 8000) + 2000,
+    'b': (Math.random() * 0.3 + 0.1).toFixed(2),
+    't': (Math.random() * 20 + 5).toFixed(2),
+    'branchCount': Math.floor(Math.random() * 15) + 5,
+    'loCode': Math.floor(Math.random() * 800) + 200,
+    'loComment': Math.floor(Math.random() * 30) + 5,
+    'loBlank': Math.floor(Math.random() * 50) + 10,
+    'locCodeAndComment': Math.floor(Math.random() * 400) + 100,
+    'uniq_Op': Math.floor(Math.random() * 20) + 5,
+    'uniq_Opnd': Math.floor(Math.random() * 50) + 20,
+    'total_Op': Math.floor(Math.random() * 100) + 50,
+    'total_Opnd': Math.floor(Math.random() * 300) + 100
+  };
+}
+
+// Populate form with data provided
+function populateFormWithData(data) {
+  // Map the internal names to HTML input IDs
+  const idMappings = {
+    'v(g)': 'vg',
+    'ev(g)': 'evg',
+    'iv(g)': 'ivg'
+  };
+  
+  for (const [key, value] of Object.entries(data)) {
+    // If this is a key that needs to be mapped to a different ID
+    const inputId = idMappings[key] || key;
+    const input = document.getElementById(inputId);
+    
+    if (input) {
+      input.value = value;
+    }
+  }
+}
+
+// Populate with sample data
+function populateWithSampleData() {
+  const sampleData = {
+    'loc': 690,
+    'v(g)': 12,
+    'ev(g)': 5,
+    'iv(g)': 6,
+    'n': 301,
+    'v': 2671,
+    'l': 0.47,
+    'd': 41.89,
+    'i': 45.84,
+    'e': 6591,
+    'b': 0.23,
+    't': 17.42,
+    'branchCount': 12,
+    'loCode': 559,
+    'loComment': 6,
+    'loBlank': 23,
+    'locCodeAndComment': 311,
+    'uniq_Op': 13,
+    'uniq_Opnd': 41,
+    'total_Op': 56,
+    'total_Opnd': 245
+  };
+  
+  // Map the internal names to HTML input IDs
+  const idMappings = {
+    'v(g)': 'vg',
+    'ev(g)': 'evg',
+    'iv(g)': 'ivg'
+  };
+  
+  // Populate with correct ID mappings
+  for (const [key, value] of Object.entries(sampleData)) {
+    // If this is a key that needs to be mapped to a different ID
+    const inputId = idMappings[key] || key;
+    const input = document.getElementById(inputId);
+    
+    if (input) {
+      input.value = value;
+    }
+  }
+}

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pridictx - File Upload</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body class="analyzer-page">
+    <header>
+      <nav>
+        <div class="logo">
+          <a href="{{ url_for('start') }}">
+            <h1 class="logo-text">Pridictx</h1>
+          </a>
+        </div>
+        <div class="nav-links">
+          <a href="{{ url_for('index') }}">Home</a>
+          <a href="{{ url_for('introduction') }}">Introduction</a>
+          <a href="{{ url_for('features') }}">Features</a>
+          <a href="{{ url_for('how_it_works') }}">How It Works</a>
+          <a href="{{ url_for('team') }}">Our Team</a>
+          <a href="{{ url_for('help') }}">Help</a>
+        </div>
+        <div class="hamburger">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </nav>
+    </header>
+
+    <div class="analyzer-container">
+      <div class="analyzer-header">
+        <h2 class="analyzer-title">
+          <i class="fas fa-code"></i> Pridictx File Upload
+        </h2>
+      </div>
+
+      <div class="analyzer-body">
+        <div class="upload-section">
+          <i class="fas fa-cloud-upload-alt upload-icon"></i>
+          <h3 class="upload-title">Upload Python Files for Analysis</h3>
+          <p class="upload-description">
+            Select a Python file (.py) to analyze
+          </p>
+
+          <!-- Flash messages -->
+          {% with messages = get_flashed_messages() %} {% if messages %}
+          <div class="flash-messages">
+            {% for message in messages %}
+            <div class="flash-message">{{ message }}</div>
+            {% endfor %}
+          </div>
+          {% endif %} {% endwith %}
+
+          <form action="/" method="post" enctype="multipart/form-data">
+            <div class="upload-buttons">
+              <input
+                type="file"
+                id="fileInput"
+                name="file"
+                class="file-input"
+                accept=".py"
+              />
+              <label for="fileInput" class="upload-btn">
+                <i class="fas fa-file-code"></i> Choose File
+              </label>
+            </div>
+            <div class="analyze-section">
+              <button type="submit" class="analyze-btn">
+                <i class="fas fa-microscope"></i> Analyze Code
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+  </body>
+</html>

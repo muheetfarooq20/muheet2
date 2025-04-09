@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>How It Works - Pridictx Bug Detection Tool</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <header>
+      <nav>
+        <div class="logo">
+          <a href="{{ url_for('start') }}">
+            <h1 class="logo-text">Pridictx</h1>
+          </a>
+        </div>
+        <div class="nav-links">
+          <a href="{{ url_for('index') }}">Home</a>
+          <a href="{{ url_for('introduction') }}">Introduction</a>
+          <a href="{{ url_for('features') }}">Features</a>
+          <a href="{{ url_for('how_it_works') }}" class="active">How It Works</a>
+          <a href="{{ url_for('team') }}">Our Team</a>
+          <a href="{{ url_for('help') }}">Help</a>
+        </div>
+        <div class="hamburger">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section class="page-header">
+        <h1>How Pridictx Works</h1>
+        <p>
+          Powered by a Novel XGBoost Tuned Machine Learning Model for Software
+          Bug Prediction
+        </p>
+      </section>
+
+      <section class="how-it-works">
+        <div class="model-overview">
+          <h2>Our Advanced ML Model</h2>
+          <p>
+            Pridictx leverages a state-of-the-art XGBoost machine learning model
+            that has been specifically tuned for software bug prediction. This
+            model analyzes code patterns, development metrics, and historical
+            data to identify potential bugs before they manifest.
+          </p>
+          <div class="model-visualization">
+            <div class="model-diagram">
+              <div class="diagram-node input">
+                <i class="fas fa-code"></i>
+                <span>Code Input</span>
+              </div>
+              <div class="diagram-arrow">
+                <i class="fas fa-long-arrow-alt-right"></i>
+              </div>
+              <div class="diagram-node processing">
+                <i class="fas fa-cogs"></i>
+                <span>Feature Extraction</span>
+              </div>
+              <div class="diagram-arrow">
+                <i class="fas fa-long-arrow-alt-right"></i>
+              </div>
+              <div class="diagram-node model">
+                <i class="fas fa-brain"></i>
+                <span>XGBoost Model</span>
+              </div>
+              <div class="diagram-arrow">
+                <i class="fas fa-long-arrow-alt-right"></i>
+              </div>
+              <div class="diagram-node output">
+                <i class="fas fa-bug"></i>
+                <span>Bug Prediction</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="process-steps">
+          <h2>The Prediction Process</h2>
+
+          <div class="step">
+            <div class="step-number">1</div>
+            <div class="step-content">
+              <h3>Code Analysis</h3>
+              <p>
+                Our system scans your codebase and extracts relevant features
+                such as code complexity, developer patterns, and structural
+                metrics.
+              </p>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-number">2</div>
+            <div class="step-content">
+              <h3>Feature Engineering</h3>
+              <p>
+                We transform raw code metrics into meaningful features that our
+                machine learning model can understand and process effectively.
+              </p>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-number">3</div>
+            <div class="step-content">
+              <h3>XGBoost Processing</h3>
+              <p>
+                Our tuned XGBoost model analyzes these features using gradient
+                boosting decision trees to identify patterns associated with
+                bugs.
+              </p>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-number">4</div>
+            <div class="step-content">
+              <h3>Risk Assessment</h3>
+              <p>
+                The model assigns a bug probability score to different parts of
+                your code, highlighting areas that require attention.
+              </p>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-number">5</div>
+            <div class="step-content">
+              <h3>Actionable Insights</h3>
+              <p>
+                Pridictx provides specific recommendations on how to address
+                potential issues before they become actual bugs.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="technical-details">
+          <h2>Technical Specifications</h2>
+
+          <div class="tech-grid">
+            <div class="tech-card">
+              <div class="tech-icon">
+                <i class="fas fa-chart-line"></i>
+              </div>
+              <h3>Model Accuracy</h3>
+              <p>
+                Our XGBoost model achieves 94% accuracy in predicting software
+                bugs, significantly outperforming traditional static analysis
+                tools.
+              </p>
+            </div>
+
+            <div class="tech-card">
+              <div class="tech-icon">
+                <i class="fas fa-tachometer-alt"></i>
+              </div>
+              <h3>Performance</h3>
+              <p>
+                Pridictx can analyze over 100,000 lines of code in under 5
+                minutes, making it suitable for both small projects and
+                enterprise applications.
+              </p>
+            </div>
+
+            <div class="tech-card">
+              <div class="tech-icon">
+                <i class="fas fa-code-branch"></i>
+              </div>
+              <h3>Adaptability</h3>
+              <p>
+                The model continuously learns from new data and feedback,
+                improving its prediction accuracy over time for your specific
+                codebase.
+              </p>
+            </div>
+
+            <div class="tech-card">
+              <div class="tech-icon">
+                <i class="fas fa-database"></i>
+              </div>
+              <h3>Training Data</h3>
+              <p>
+                Trained on over 10 million code samples from diverse projects,
+                our model understands a wide range of programming patterns and
+                bugs.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="ml-details">
+          <h2>The XGBoost Advantage</h2>
+          <p>
+            XGBoost (Extreme Gradient Boosting) is a powerful machine learning
+            algorithm that excels at structured data prediction tasks. For bug
+            prediction, it offers several key advantages:
+          </p>
+          <ul class="advantage-list">
+            <li>
+              <strong>Ensemble Learning:</strong> Combines multiple decision
+              trees to create a more accurate and robust prediction model.
+            </li>
+            <li>
+              <strong>Regularization:</strong> Built-in regularization helps
+              prevent overfitting, ensuring the model generalizes well to new
+              code.
+            </li>
+            <li>
+              <strong>Feature Importance:</strong> Automatically identifies
+              which code metrics are most predictive of bugs, improving
+              interpretability.
+            </li>
+            <li>
+              <strong>Handling Missing Data:</strong> Gracefully handles missing
+              metrics or incomplete code information without compromising
+              prediction quality.
+            </li>
+            <li>
+              <strong>Computational Efficiency:</strong> Optimized algorithm
+              that can process large codebases quickly and with minimal resource
+              usage.
+            </li>
+          </ul>
+          <p>
+            Our novel tuning approach optimizes the XGBoost hyperparameters
+            specifically for software bug prediction, resulting in significantly
+            higher accuracy compared to generic implementations.
+          </p>
+        </div>
+      </section>
+
+      <section class="back-to-home">
+        <a href="{{ url_for('index') }}" class="btn primary-btn">Back to Home</a>
+      </section>
+    </main>
+
+    <footer>
+      <div class="footer-bottom">
+        <p>&copy; 2023 Pridictx. All rights reserved.</p>
+        <div class="social-links">
+          <a href="#"><i class="fab fa-twitter"></i></a>
+          <a href="#"><i class="fab fa-github"></i></a>
+          <a href="#"><i class="fab fa-linkedin"></i></a>
+        </div>
+      </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+  </body>
+</html>

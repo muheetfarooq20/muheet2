@@ -1,0 +1,827 @@
+{% extends "base.html" %}
+
+{% block title %}Bug Prediction System | Pridictx{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='predictor_new.css') }}?v={{ now }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  /* Futuristic card design */
+  body {
+    background: #0f0c29;
+    background: linear-gradient(135deg, #24243e, #302b63, #0f0c29);
+    color: white;
+  }
+  
+  .page-header {
+    background: linear-gradient(135deg, #5046e0, #6c63ff, #867dff) !important;
+    color: white !important;
+    box-shadow: 0 10px 30px rgba(80, 70, 224, 0.3) !important;
+  }
+  
+  .glass-card {
+    background: rgba(25, 23, 36, 0.6) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  .metrics-card {
+    margin-bottom: 30px;
+    border-radius: 15px;
+    backdrop-filter: blur(12px);
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+  }
+  
+  .metrics-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+  }
+  
+  .metrics-card-header {
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .metrics-card-icon {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 22px;
+    background: rgba(255, 255, 255, 0.15);
+  }
+  
+  .metrics-card-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    letter-spacing: 0.5px;
+  }
+  
+  .metrics-card-body {
+    padding: 20px;
+  }
+  
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+  }
+  
+  .metric-item {
+    background: rgba(255, 255, 255, 0.07);
+    border-radius: 10px;
+    padding: 15px;
+    transition: all 0.3s ease;
+  }
+  
+  .metric-item:hover {
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateY(-3px);
+  }
+  
+  .metric-item label {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 600 !important;
+    font-size: 16px !important;
+    display: block;
+    margin-bottom: 10px;
+  }
+  
+  .metric-hint {
+    color: rgba(255, 255, 255, 0.6) !important;
+    font-weight: 400 !important;
+    margin-top: 8px;
+    font-size: 13px !important;
+  }
+  
+  input[type="number"] {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 2px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 8px !important;
+    color: white !important;
+    font-weight: 600 !important;
+    padding: 12px !important;
+    transition: all 0.3s ease;
+  }
+  
+  input[type="number"]:focus {
+    background: rgba(255, 255, 255, 0.14) !important;
+    border-color: rgba(108, 99, 255, 0.5) !important;
+    box-shadow: 0 0 15px rgba(108, 99, 255, 0.3) !important;
+  }
+  
+  input[type="number"]::placeholder {
+    color: rgba(255, 255, 255, 0.3) !important;
+  }
+  
+  /* Specific card styles */
+  .complexity-card {
+    background: linear-gradient(135deg, #4e54c8, #8089fc);
+  }
+  
+  .halstead-card {
+    background: linear-gradient(135deg, #6a3093, #a044ff);
+  }
+  
+  .structure-card {
+    background: linear-gradient(135deg, #11998e, #38ef7d);
+  }
+  
+  .statistics-card {
+    background: linear-gradient(135deg, #0082c8, #667db6);
+  }
+  
+  .operators-card {
+    background: linear-gradient(135deg, #eb3941, #f45d48);
+  }
+  
+  /* Operators & Operands section highlight */
+  #total_Opnd, #total_Op, #uniq_Op, #uniq_Opnd {
+    color: white !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: 2px solid rgba(255, 71, 87, 0.5) !important;
+    box-shadow: 0 0 15px rgba(255, 71, 87, 0.2) !important;
+    font-weight: bold !important;
+  }
+  
+  /* Fix notification styles to ensure visibility */
+  .notification {
+    background: rgba(25, 23, 36, 0.95) !important;
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3) !important;
+    padding: 15px !important;
+    z-index: 9999 !important;
+    max-width: 350px !important;
+    transform: none !important;
+    opacity: 1 !important;
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    border-radius: 10px !important;
+  }
+  
+  .notification-content {
+    color: white !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+  }
+  
+  .notification-icon {
+    font-size: 18px !important;
+    margin-right: 10px !important;
+  }
+  
+  .notification.success .notification-icon {
+    color: #2ed573 !important;
+  }
+  
+  .notification.error .notification-icon {
+    color: #ff4757 !important;
+  }
+  
+  .notification.warning .notification-icon {
+    color: #ffbb55 !important;
+  }
+  
+  .notification.info .notification-icon {
+    color: #1eb2fc !important;
+  }
+  
+  /* Buttons */
+  .action-buttons {
+    margin-top: 40px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+  }
+  
+  .btn {
+    font-weight: 600 !important;
+    padding: 14px 30px !important;
+    border-radius: 50px !important;
+    font-size: 16px !important;
+    letter-spacing: 0.5px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2) !important;
+  }
+  
+  .primary-btn {
+    background: linear-gradient(135deg, #6c63ff, #4e54c8) !important;
+    color: white !important;
+    border: none !important;
+  }
+  
+  .primary-btn:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 12px 25px rgba(108, 99, 255, 0.4) !important;
+  }
+  
+  .secondary-btn {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  }
+  
+  .secondary-btn:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    transform: translateY(-3px) !important;
+  }
+  
+  /* Results */
+  .result-container {
+    margin-top: 30px;
+    color: white;
+    background: rgba(25, 23, 36, 0.7);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+  }
+  
+  /* Loading overlay */
+  .loading-overlay {
+    background: rgba(15, 12, 41, 0.7) !important;
+    backdrop-filter: blur(8px) !important;
+  }
+  
+  .loading-spinner {
+    border-top-color: #6c63ff !important;
+  }
+  
+  .loading-ring {
+    border-left-color: #867dff !important;
+    border-right-color: #867dff !important;
+  }
+  
+  /* Create particles background */
+  .particles-js {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+  }
+</style>
+{% endblock %}
+
+{% block body_class %}dark-theme{% endblock %}
+
+{% block content %}
+<!-- Particles background -->
+<div id="particles-js" class="particles-js"></div>
+
+<div class="page-header">
+  <div class="container">
+    <h1 style="color: white !important; font-weight: bold !important; text-shadow: 2px 2px 4px rgba(0,0,0,0.5) !important;">Bug Prediction System</h1>
+    <p style="color: white !important; font-weight: normal !important;">Advanced AI-powered analysis for detecting potential bugs in your code</p>
+  </div>
+</div>
+
+<div class="container">
+  <div class="glass-card">
+    <h2>Bug Predictor</h2>
+    <button id="notification-test" class="action-button">Test Notifications</button>
+    <form id="predictor-form" class="prediction-form">
+      <!-- Complexity Metrics -->
+      <div class="metrics-card complexity-card">
+        <div class="metrics-card-header">
+          <div class="metrics-card-icon">
+            <i class="fas fa-project-diagram"></i>
+          </div>
+          <h3 class="metrics-card-title">Complexity Metrics</h3>
+        </div>
+        <div class="metrics-card-body">
+          <div class="metrics-grid">
+            <div class="metric-item">
+              <label for="loc">LOC</label>
+              <input type="number" id="loc" name="loc" min="0" placeholder="Lines of code">
+              <span class="metric-hint">Total lines in the code</span>
+            </div>
+            
+            <div class="metric-item">
+              <label for="vg">v(g)</label>
+              <input type="number" id="vg" name="vg" min="0" placeholder="Cyclomatic complexity">
+              <span class="metric-hint">Cyclomatic complexity</span>
+            </div>
+            
+            <div class="metric-item">
+              <label for="evg">ev(g)</label>
+              <input type="number" id="evg" name="evg" min="0" placeholder="Essential complexity">
+              <span class="metric-hint">Essential complexity</span>
+            </div>
+            
+            <div class="metric-item">
+              <label for="ivg">iv(g)</label>
+              <input type="number" id="ivg" name="ivg" min="0" placeholder="Design complexity">
+              <span class="metric-hint">Design complexity</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Halstead Metrics -->
+      <div class="metrics-card halstead-card">
+        <div class="metrics-card-header">
+          <div class="metrics-card-icon">
+            <i class="fas fa-calculator"></i>
+          </div>
+          <h3 class="metrics-card-title">Halstead Metrics</h3>
+        </div>
+        <div class="metrics-card-body">
+          <div class="metrics-grid">
+            <div class="metric-item">
+              <label for="n">n</label>
+              <input type="number" id="n" name="n" min="0" placeholder="Program vocabulary">
+              <span class="metric-hint">Program vocabulary</span>
+            </div>
+            
+            <div class="metric-item">
+              <label for="v">v</label>
+              <input type="number" id="v" name="v" min="0" placeholder="Program volume">
+              <span class="metric-hint">Program volume</span>
+            </div>
+            
+            <div class="metric-item">
+              <label for="l">l</label>
+              <input type="number" id="l" name="l" min="0" step="0.01" placeholder="Program level">
+              <span class="metric-hint">Program level</span>
+            </div>
+            
+            <div class="metric-item">
+              <label for="d">d</label>
+              <input type="number" id="d" name="d" min="0" step="0.01" placeholder="Difficulty">
+              <span class="metric-hint">Program difficulty</span>
+            </div>
+            
+            <div class="metric-item">
+              <label for="i">i</label>
+              <input type="number" id="i" name="i" min="0" step="0.01" placeholder="Intelligence">
+              <span class="metric-hint">Program intelligence</span>
+            </div>
+            
+            <div class="metric-item">
+              <label for="e">e</label>
+              <input type="number" id="e" name="e" min="0" placeholder="Effort">
+              <span class="metric-hint">Programming effort</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Structure Metrics -->
+      <div class="metrics-card structure-card">
+        <div class="metrics-card-header">
+          <div class="metrics-card-icon">
+            <i class="fas fa-code-branch"></i>
+          </div>
+          <h3 class="metrics-card-title">Structure Metrics</h3>
+        </div>
+        <div class="metrics-card-body">
+          <div class="metrics-grid">
+            <div class="metric-item">
+              <label for="b">b</label>
+              <input type="number" id="b" name="b" min="0" step="0.01" placeholder="Bug estimate">
+              <span class="metric-hint">Bug estimate</span>
+            </div>
+            
+            <div class="metric-item">
+              <label for="t">t</label>
+              <input type="number" id="t" name="t" min="0" step="0.01" placeholder="Time estimate">
+              <span class="metric-hint">Time to program</span>
+            </div>
+            
+            <div class="metric-item">
+              <label for="branchCount">branchCount</label>
+              <input type="number" id="branchCount" name="branchCount" min="0" placeholder="Branch count">
+              <span class="metric-hint">Number of branches</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Code Statistics -->
+      <div class="metrics-card statistics-card">
+        <div class="metrics-card-header">
+          <div class="metrics-card-icon">
+            <i class="fas fa-file-code"></i>
+          </div>
+          <h3 class="metrics-card-title">Code Statistics</h3>
+        </div>
+        <div class="metrics-card-body">
+          <div class="metrics-grid">
+            <div class="metric-item">
+              <label for="loCode">lOCode</label>
+              <input type="number" id="loCode" name="loCode" min="0" placeholder="Lines of code">
+              <span class="metric-hint">Lines of code</span>
+            </div>
+            
+            <div class="metric-item">
+              <label for="loComment">lOComment</label>
+              <input type="number" id="loComment" name="loComment" min="0" placeholder="Lines of comments">
+              <span class="metric-hint">Lines of comments</span>
+            </div>
+            
+            <div class="metric-item">
+              <label for="loBlank">lOBlank</label>
+              <input type="number" id="loBlank" name="loBlank" min="0" placeholder="Blank lines">
+              <span class="metric-hint">Blank lines</span>
+            </div>
+            
+            <div class="metric-item">
+              <label for="locCodeAndComment">locCodeAndComment</label>
+              <input type="number" id="locCodeAndComment" name="locCodeAndComment" min="0" placeholder="Code and comment lines">
+              <span class="metric-hint">Code and comment lines</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Operators & Operands -->
+      <div class="metrics-card operators-card">
+        <div class="metrics-card-header">
+          <div class="metrics-card-icon">
+            <i class="fas fa-cogs"></i>
+          </div>
+          <h3 class="metrics-card-title">Operators & Operands</h3>
+        </div>
+        <div class="metrics-card-body">
+          <div class="metrics-grid">
+            <div class="metric-item">
+              <label for="uniq_Op">Unique Operators</label>
+              <input type="number" id="uniq_Op" name="uniq_Op" min="0" placeholder="Unique operators">
+              <span class="metric-hint">Number of distinct operators</span>
+            </div>
+            
+            <div class="metric-item">
+              <label for="uniq_Opnd">Unique Operands</label>
+              <input type="number" id="uniq_Opnd" name="uniq_Opnd" min="0" placeholder="Unique operands">
+              <span class="metric-hint">Number of distinct operands</span>
+            </div>
+            
+            <div class="metric-item">
+              <label for="total_Op">Total Operators</label>
+              <input type="number" id="total_Op" name="total_Op" min="0" placeholder="Total operators">
+              <span class="metric-hint">Total operator occurrences</span>
+            </div>
+            
+            <div class="metric-item">
+              <label for="total_Opnd">Total Operands</label>
+              <input type="number" id="total_Opnd" name="total_Opnd" min="0" placeholder="Total operands">
+              <span class="metric-hint">Total operand occurrences</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="action-buttons">
+        <button type="submit" class="btn primary-btn">
+          <i class="fas fa-bolt"></i> Predict
+        </button>
+        
+        <label for="file-input" class="btn secondary-btn">
+          <i class="fas fa-code"></i> Upload Code
+        </label>
+        <input type="file" id="file-input" accept=".js,.py,.java,.c,.cpp" hidden>
+        
+        <button type="button" id="csv-upload" class="btn secondary-btn">
+          <i class="fas fa-file-csv"></i> Upload CSV
+        </button>
+        
+        <button type="button" id="debug-button" class="btn secondary-btn" style="background: rgba(255, 50, 50, 0.2) !important;">
+          <i class="fas fa-bug"></i> Debug Test
+        </button>
+        
+        <button type="button" id="notify-test-btn" class="btn secondary-btn" style="background: rgba(30, 178, 252, 0.3) !important;">
+          <i class="fas fa-bell"></i> Test Notification
+        </button>
+      </div>
+      
+      <div id="result-container" class="result-container" style="display:block; min-height:300px; padding:20px;"></div>
+    </form>
+  </div>
+</div>
+
+<div id="loading-overlay" class="loading-overlay">
+  <div class="spinner-container">
+    <div class="loading-spinner"></div>
+    <div class="loading-ring"></div>
+    <div style="color: white; font-weight: bold; margin-top: 20px;">Processing...</div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='predictor.js') }}?v={{ now }}"></script>
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize particles.js
+    particlesJS('particles-js', {
+      "particles": {
+        "number": {
+          "value": 80,
+          "density": {
+            "enable": true,
+            "value_area": 800
+          }
+        },
+        "color": {
+          "value": "#ffffff"
+        },
+        "shape": {
+          "type": "circle",
+          "stroke": {
+            "width": 0,
+            "color": "#000000"
+          },
+          "polygon": {
+            "nb_sides": 5
+          }
+        },
+        "opacity": {
+          "value": 0.2,
+          "random": true,
+          "anim": {
+            "enable": true,
+            "speed": 1,
+            "opacity_min": 0.1,
+            "sync": false
+          }
+        },
+        "size": {
+          "value": 3,
+          "random": true,
+          "anim": {
+            "enable": true,
+            "speed": 2,
+            "size_min": 0.3,
+            "sync": false
+          }
+        },
+        "line_linked": {
+          "enable": true,
+          "distance": 150,
+          "color": "#6c63ff",
+          "opacity": 0.2,
+          "width": 1
+        },
+        "move": {
+          "enable": true,
+          "speed": 1,
+          "direction": "none",
+          "random": true,
+          "straight": false,
+          "out_mode": "out",
+          "bounce": false,
+          "attract": {
+            "enable": true,
+            "rotateX": 600,
+            "rotateY": 1200
+          }
+        }
+      },
+      "interactivity": {
+        "detect_on": "canvas",
+        "events": {
+          "onhover": {
+            "enable": true,
+            "mode": "grab"
+          },
+          "onclick": {
+            "enable": true,
+            "mode": "push"
+          },
+          "resize": true
+        },
+        "modes": {
+          "grab": {
+            "distance": 140,
+            "line_linked": {
+              "opacity": 0.4
+            }
+          },
+          "bubble": {
+            "distance": 400,
+            "size": 40,
+            "duration": 2,
+            "opacity": 8,
+            "speed": 3
+          },
+          "repulse": {
+            "distance": 200,
+            "duration": 0.4
+          },
+          "push": {
+            "particles_nb": 4
+          },
+          "remove": {
+            "particles_nb": 2
+          }
+        }
+      },
+      "retina_detect": true
+    });
+    
+    // Add debug button functionality
+    document.getElementById('debug-button').addEventListener('click', function() {
+      console.log('Debug button clicked - sending test prediction');
+      
+      // Sample test data
+      const testData = {
+        'loc': 500,
+        'v(g)': 15,
+        'ev(g)': 5,
+        'iv(g)': 7,
+        'n': 250,
+        'v': 3000,
+        'd': 25,
+        'e': 7500
+      };
+      
+      // Show loading state
+      showLoading();
+      
+      // Send direct API request
+      fetch('/predict', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(testData)
+      })
+      .then(response => {
+        console.log('Debug test response status:', response.status);
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Debug test result received:', data);
+        // Display the result
+        displayFuturisticResult(data);
+        hideLoading();
+        showNotification('Debug test prediction complete', 'success');
+        
+        // Make sure the result container is visible with styles
+        const resultContainer = document.getElementById('result-container');
+        resultContainer.style.display = 'block';
+        resultContainer.style.opacity = '1';
+        resultContainer.style.minHeight = '200px';
+        resultContainer.style.padding = '20px';
+        resultContainer.classList.add('visible');
+      })
+      .catch(error => {
+        console.error('Error in debug test:', error);
+        hideLoading();
+        showNotification('Error in debug test: ' + error.message, 'error');
+      });
+    });
+    
+    // Update the notification test button to use the proper ID
+    document.getElementById('notify-test-btn').addEventListener('click', function(e) {
+      e.preventDefault();
+      showCustomNotification('Success notification test', 'success');
+      setTimeout(() => {
+        showCustomNotification('Error notification test', 'error');
+      }, 1500);
+      setTimeout(() => {
+        showCustomNotification('Info notification test', 'info');
+      }, 3000);
+    });
+    
+    // Custom notification function (completely independent from CSS)
+    function showCustomNotification(message, type) {
+      console.log('Showing custom notification:', message, type);
+      
+      // Create notification element with inline styles
+      const notification = document.createElement('div');
+      notification.style.position = 'fixed';
+      notification.style.top = '20px';
+      notification.style.right = '20px';
+      notification.style.background = 'rgba(25, 23, 36, 0.95)';
+      notification.style.color = 'white';
+      notification.style.padding = '15px';
+      notification.style.borderRadius = '10px';
+      notification.style.boxShadow = '0 5px 25px rgba(0, 0, 0, 0.3)';
+      notification.style.display = 'flex';
+      notification.style.alignItems = 'center';
+      notification.style.gap = '10px';
+      notification.style.maxWidth = '350px';
+      notification.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+      notification.style.zIndex = '9999';
+      notification.style.transition = 'all 0.3s ease';
+      notification.style.opacity = '0';
+      notification.style.transform = 'translateY(-20px)';
+      
+      // Set icon based on type
+      let iconColor = '#1eb2fc'; // info (default)
+      let iconClass = 'fa-info-circle';
+      
+      if (type === 'success') {
+        iconColor = '#2ed573';
+        iconClass = 'fa-check-circle';
+      } else if (type === 'error') {
+        iconColor = '#ff4757';
+        iconClass = 'fa-times-circle';
+      } else if (type === 'warning') {
+        iconColor = '#ffbb55';
+        iconClass = 'fa-exclamation-triangle';
+      }
+      
+      // Create notification content
+      notification.innerHTML = `
+        <div style="color: ${iconColor}; font-size: 18px;">
+          <i class="fas ${iconClass}"></i>
+        </div>
+        <div style="flex-grow: 1; font-weight: 600; font-size: 14px;">
+          ${message}
+        </div>
+      `;
+      
+      // Add to body
+      document.body.appendChild(notification);
+      
+      // Show notification with animation
+      setTimeout(() => {
+        notification.style.opacity = '1';
+        notification.style.transform = 'translateY(0)';
+      }, 10);
+      
+      // Remove after 5 seconds
+      setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateY(-20px)';
+        
+        setTimeout(() => {
+          notification.remove();
+        }, 300);
+      }, 5000);
+    }
+    
+    // Override the initial notifications to use our custom function
+    setTimeout(() => {
+      showCustomNotification('Page loaded successfully. Click "Debug Test" button to test prediction.', 'info');
+    }, 1000);
+    
+    // Send a ping to check if the ML model is available
+    fetch('/ping_model', { method: 'GET' })
+      .then(response => response.json())
+      .then(data => {
+        if (data.model_available) {
+          console.log('ML model is available for predictions');
+          showNotification('AI model is ready for predictions', 'success');
+        } else {
+          console.warn('ML model is not available, using fallback algorithm');
+          showNotification('Using algorithmic prediction (ML model unavailable)', 'warning');
+        }
+      })
+      .catch(err => {
+        console.error('Error checking ML model status:', err);
+      });
+      
+    // Add additional debugging code to fix the results display
+    function fixResultContainer() {
+      console.log('Running result container fix...');
+      const resultContainer = document.getElementById('result-container');
+      if (resultContainer) {
+        console.log('Result container found, fixing visibility...');
+        resultContainer.style.display = 'block';
+        resultContainer.style.minHeight = '300px';
+        resultContainer.style.padding = '20px';
+        resultContainer.style.opacity = '1';
+      } else {
+        console.error('Result container not found!');
+      }
+    }
+    
+    // Run the fix after a short delay
+    setTimeout(fixResultContainer, 2000);
+  });
+
+  function showNotification(message, type) {
+    // Use our custom notification function instead
+    showCustomNotification(message, type);
+  }
+</script>
+{% endblock %}

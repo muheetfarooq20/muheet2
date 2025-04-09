@@ -1,0 +1,21 @@
+Metric,Value
+Lines of Code,756
+Cyclomatic Complexity,35
+Essential Complexity,21
+Design Complexity,28
+Code Lines,608
+Comment Lines,47
+Blank Lines,101
+Branch Count,25
+Program Length (N),2250
+Program Volume (V),18969
+Program Level (L),undefined
+Program Difficulty (D),405
+Intelligence Content (I),undefined
+Programming Effort (E),7682445
+Number of Bugs (B),426803
+Time to Program (T),7113
+Unique Operators,130
+Unique Operands,215
+Total Operators,912
+Total Operands,1338

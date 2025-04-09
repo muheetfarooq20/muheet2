@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PridictX - Bug Predictor</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body class="predictor-page">
+    <header>
+      <nav>
+        <div class="logo">
+          <h1 class="logo-text">Pridictx</h1>
+        </div>
+        <div class="nav-links">
+          <a href="index.html">Home</a>
+          <a href="introduction.html">Introduction</a>
+          <a href="features.html">Features</a>
+          <a href="how-it-works.html">How It Works</a>
+          <a href="team.html">Our Team</a>
+          <a href="help.html">Help</a>
+        </div>
+        <div class="hamburger">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <div class="predictor-container">
+        <div class="predictor-header">
+          <h2 class="predictor-title">
+            <i class="fas fa-bug"></i> Bug Prediction System
+          </h2>
+          <p class="predictor-subtitle">
+            Enter your metrics below to analyze code for potential bugs
+          </p>
+        </div>
+
+        <div class="predictor-body">
+          <div class="predictor-card">
+            <div class="card-header">
+              <h3><i class="fas fa-clipboard-list"></i> Manual Input</h3>
+            </div>
+            <form id="prediction-form" class="predictor-form">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="wmc">Weighted Methods per Class (WMC)</label>
+                  <input type="text" id="wmc" name="wmc" required />
+                </div>
+                <div class="form-group">
+                  <label for="dit">Depth of Inheritance Tree (DIT)</label>
+                  <input type="text" id="dit" name="dit" required />
+                </div>
+                <div class="form-group">
+                  <label for="noc">Number of Children (NOC)</label>
+                  <input type="text" id="noc" name="noc" required />
+                </div>
+                <div class="form-group">
+                  <label for="cbo">Coupling Between Objects (CBO)</label>
+                  <input type="text" id="cbo" name="cbo" required />
+                </div>
+                <div class="form-group">
+                  <label for="rfc">Response for a Class (RFC)</label>
+                  <input type="text" id="rfc" name="rfc" required />
+                </div>
+                <div class="form-group">
+                  <label for="lcom">Lack of Cohesion of Methods (LCOM)</label>
+                  <input type="text" id="lcom" name="lcom" required />
+                </div>
+                <div class="form-group">
+                  <label for="loc">Lines of Code (LOC)</label>
+                  <input type="text" id="loc" name="loc" required />
+                </div>
+                <div class="form-group">
+                  <label for="cc">Cyclomatic Complexity (CC)</label>
+                  <input type="text" id="cc" name="cc" required />
+                </div>
+              </div>
+              <button type="submit" class="predictor-btn">
+                <i class="fas fa-search"></i> Predict
+              </button>
+            </form>
+          </div>
+
+          <div class="predictor-card">
+            <div class="card-header">
+              <h3><i class="fas fa-file-upload"></i> Batch Prediction</h3>
+            </div>
+            <form id="csv-upload-form" class="predictor-form">
+              <div class="file-input-container">
+                <input
+                  type="file"
+                  id="csv-file"
+                  name="file"
+                  accept=".csv"
+                  class="custom-file-input"
+                  required
+                />
+                <label for="csv-file" class="custom-file-label"
+                  >Choose CSV File</label
+                >
+              </div>
+              <p class="file-note">
+                Upload a CSV file with multiple code metrics for batch
+                prediction
+              </p>
+              <button type="submit" class="predictor-btn">
+                <i class="fas fa-upload"></i> Upload & Predict
+              </button>
+            </form>
+          </div>
+
+          <div class="result-container" id="result">
+            <!-- Results will be displayed here -->
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <div class="footer-bottom">
+        <p>&copy; 2023 Pridictx. All rights reserved.</p>
+        <div class="social-links">
+          <a href="#"><i class="fab fa-twitter"></i></a>
+          <a href="#"><i class="fab fa-github"></i></a>
+          <a href="#"><i class="fab fa-linkedin"></i></a>
+        </div>
+      </div>
+    </footer>
+
+    <div class="loading-overlay" id="predictorLoadingOverlay">
+      <div class="loader"></div>
+      <p class="loading-text">Processing Prediction...</p>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
